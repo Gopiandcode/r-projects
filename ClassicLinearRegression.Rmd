@@ -1,0 +1,99 @@
+---
+title: "Classic Linear Regression in R"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+Let's do some simple linear regression in R.
+We can use one of the built in datasets in R for our data, and then try and make a model for it.
+
+Let's try plotting it first.
+
+```{r}
+plot(cars)
+```
+Looking good - look's like there's some strong correlation there. But how much? Let's find out!
+```{r}
+covariance_of_speed_and_distance = cov(cars$dist, cars$speed)
+s_x = sd(cars$speed)
+s_y = sd(cars$dist)
+correlation_coefficient = covariance_of_speed_and_distance / (s_x * s_y)
+correlation_coefficient
+```
+Just to compare, let's check that this figure matches what the built in correlation coefficient calculator returns:
+```{r}
+cor(cars$speed, cars$dist)
+```
+Brilliant, we can stats correctly!
+
+Now to move on to doing some linear regression. First, let's give some easier to type names to our data:
+```{r}
+x = cars$speed
+y = cars$dist
+```
+
+Now we can calculate the sxx values
+
+```{r}
+sxy = sum((x-mean(x)) * (y-mean(y)))
+sxx = sum((x-mean(x))^2)
+syy = sum((y-mean(y))^2)
+```
+
+Now we have the sample stats, we can calculate the coefficients:
+
+```{r}
+beta_1_hat = sxy/sxx
+beta_0_hat = mean(y) - beta_1_hat * mean(x)
+c(beta_0_hat, beta_1_hat)
+```
+Cool, now we have a prediction line.
+```{r}
+plot(cars)
+abline(beta_0_hat, beta_1_hat)
+```
+
+Now, let's try making a prediction:
+```{r}
+(cars[which(cars$speed == 8),]$dist - (beta_0_hat + beta_1_hat * 8))
+```
+Now, let's produce an estimate for sigma^2 ( the single variance value for our homoscedastic disturbance terms)
+```{r}
+y_hat = beta_0_hat + beta_1_hat * x
+e = y - y_hat
+n = length(e)
+s2_e = sum(e^2) / (n-2)
+s2_e
+```
+
+Okay cool! That's a value of our homscedastic disturbance term. Let's have a look at explained variance and the lot.
+```{r}
+total_sum_of_squares = sum((y - mean(y))^2)
+explained_sum_of_squares = sum((y_hat-mean(y))^2)
+unexplained_sum_of_squares = sum((y - y_hat)^2)
+```
+
+Cool, and this gives us some empirical evidence to the TSS = RSS + ESS equality we proved
+```{r}
+c(total_sum_of_squares, explained_sum_of_squares, unexplained_sum_of_squares, explained_sum_of_squares + unexplained_sum_of_squares, explained_sum_of_squares + unexplained_sum_of_squares - total_sum_of_squares)
+```
+Okay, because of floating point we can't actually get equality, but from this we can see the difference between the tss and the ess + rss is v.small
+
+
+```{r}
+R_squared = explained_sum_of_squares /  total_sum_of_squares
+R_squared
+```
+
+
+
+
+
+
+
+
+
+
